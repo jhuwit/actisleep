@@ -130,16 +130,15 @@ cross midnight and span multiple days.
 
 ## Machine-learning model wrappers
 
-`acti_sleep_asleep()` and `acti_sleep_sleeper()` both require complete,
-strictly time-ordered raw triaxial data. They return the same columns:
-`time`, `sleep`, `sleep_probability`, `sleep_stage`, `nonwear`, and
-`method`.
+`acti_asleep()` and `acti_sleeper()` both require complete, strictly
+time-ordered raw triaxial data. They return the same columns: `time`,
+`sleep`, `sleep_probability`, `sleep_stage`, `nonwear`, and `method`.
 
 The models and their Python requirements are managed by the upstream
 packages. For `sleeper`, download the model files first and provide
 their directory as `model_dir`.
 
 ``` r
-asleep_estimate <- acti_sleep_asleep(raw, verbose = FALSE)
-sleeper_estimate <- acti_sleep_sleeper(raw, model_dir = "path/to/sleeper-models")
+asleep_estimate <- acti_asleep(raw, verbose = FALSE)
+sleeper_estimate <- acti_sleeper(raw, model_dir = "path/to/sleeper-models")
 ```

@@ -305,7 +305,7 @@ acti_sleep_horangle <- function(data, epoch = "5 seconds", longitudinal_axis = "
 #' @param data A data frame of regular activity epochs.
 #' @param l5_hours Duration of the least-active period.
 #' @param window_hours Duration of the guider centred on L5.
-#' @examplesIf rlang::check_installed("actimetrics")
+#' @examplesIf rlang::is_installed("actimetrics")
 #' # Repeat the bundled minute-level count data to form a complete example day.
 #' data <- actimetrics::acti_count_data
 #' data <- data[rep(seq_len(nrow(data)), length.out = 24 * 60), ]
@@ -342,7 +342,7 @@ acti_sleep_l5 <- function(data, l5_hours = 5, window_hours = 12) {
 #' @param data A data frame containing timestamps.
 #' @param start_hour,end_hour Start and end clock hours (0--24).
 #' @return An `acti_sleep_guider` object.
-#' @examplesIf rlang::check_installed("actimetrics")
+#' @examplesIf rlang::is_installed("actimetrics")
 #' data <- actimetrics::acti_count_data
 #' fixed_window <- acti_sleep_setwindow(data, start_hour = 22, end_hour = 8)
 #' @export
@@ -371,7 +371,7 @@ acti_sleep_setwindow <- function(data, start_hour = 22, end_hour = 8) {
 #' Identify the longest rest bout from sustained inactivity bouts
 #'
 #' @param data A data frame of regular epochs.
-#' @examplesIf rlang::check_installed("actimetrics")
+#' @examplesIf rlang::is_installed("actimetrics")
 #' data <- actimetrics::acti_count_data
 #' data <- data[rep(seq_len(nrow(data)), length.out = 24 * 60), ]
 #' data$time <- data$time[1] + (seq_len(nrow(data)) - 1) * 60
@@ -413,7 +413,7 @@ acti_sleep_hlrb <- function(data) {
 #' @param data A data frame of regular activity epochs.
 #' @param min_block_minutes Minimum duration of a low-activity block.
 #' @param max_gap_minutes Maximum interruption bridged between blocks.
-#' @examplesIf rlang::check_installed("actimetrics")
+#' @examplesIf rlang::is_installed("actimetrics")
 #' data <- actimetrics::acti_count_data
 #' data <- data[rep(seq_len(nrow(data)), length.out = 24 * 60), ]
 #' data$time <- data$time[1] + (seq_len(nrow(data)) - 1) * 60
@@ -457,7 +457,7 @@ acti_sleep_notworn <- function(data, min_block_minutes = 30,
 #' @param onset,wakeup POSIXct values defining a diary sleep window.
 #' @return An `acti_sleep_guider` object. Missing diary times return an empty
 #'   window rather than imputing either boundary.
-#' @examplesIf rlang::check_installed("actimetrics")
+#' @examplesIf rlang::is_installed("actimetrics")
 #' data <- actimetrics::acti_count_data
 #' diary_window <- acti_sleep_diary(
 #'   data, onset = data$time[5], wakeup = data$time[30]
@@ -525,7 +525,7 @@ acti_sleep_guider_requirements <- function() {
 #' @param ... Method-specific arguments, such as `threshold`, `start_hour`,
 #'   `onset`, and `wakeup`.
 #' @return An `acti_sleep_guider` object.
-#' @examplesIf rlang::check_installed("actimetrics")
+#' @examplesIf rlang::is_installed("actimetrics")
 #' data <- actimetrics::acti_count_data
 #' data <- data[rep(seq_len(nrow(data)), length.out = 24 * 60), ]
 #' data$time <- data$time[1] + (seq_len(nrow(data)) - 1) * 60
@@ -570,7 +570,7 @@ acti_sleep_guider <- function(data,
 #' @param sleepwindow_type Whether the guider approximates sleep-period time
 #'   (`"SPT"`) or time in bed (`"TimeInBed"`).
 #' @return A logical vector: `TRUE` for sleep and `FALSE` for wake.
-#' @examplesIf rlang::check_installed("actimetrics")
+#' @examplesIf rlang::is_installed("actimetrics")
 #' data <- actimetrics::acti_count_data
 #' data <- data[rep(seq_len(nrow(data)), length.out = 24 * 60), ]
 #' data$time <- data$time[1] + (seq_len(nrow(data)) - 1) * 60
@@ -607,7 +607,7 @@ acti_sleep_label <- function(sib, guider,
 #'   windows must use the same epoch grid as `sib`.
 #' @param sleepwindow_type The SPT or TimeInBed overlap rule.
 #' @return A tibble with one logical `sleep_<guider>` column per guider.
-#' @examplesIf rlang::check_installed("actimetrics")
+#' @examplesIf rlang::is_installed("actimetrics")
 #' data <- actimetrics::acti_count_data
 #' data <- data[rep(seq_len(nrow(data)), length.out = 24 * 60), ]
 #' data$time <- data$time[1] + (seq_len(nrow(data)) - 1) * 60

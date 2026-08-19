@@ -18,7 +18,7 @@ An \code{acti_sleep_guider} object.
 Identify a fixed daily sleep window
 }
 \examples{
-\dontshow{if (rlang::check_installed("actimetrics")) withAutoprint(\{ # examplesIf}
+\dontshow{if (rlang::is_installed("actimetrics")) withAutoprint(\{ # examplesIf}
 data <- actimetrics::acti_count_data
 fixed_window <- acti_sleep_setwindow(data, start_hour = 22, end_hour = 8)
 \dontshow{\}) # examplesIf}

@@ -17,7 +17,7 @@ acti_sleep_l5(data, l5_hours = 5, window_hours = 12)
 Identify a sleep window from the least-active five hours
 }
 \examples{
-\dontshow{if (rlang::check_installed("actimetrics")) withAutoprint(\{ # examplesIf}
+\dontshow{if (rlang::is_installed("actimetrics")) withAutoprint(\{ # examplesIf}
 # Repeat the bundled minute-level count data to form a complete example day.
 data <- actimetrics::acti_count_data
 data <- data[rep(seq_len(nrow(data)), length.out = 24 * 60), ]
