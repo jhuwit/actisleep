@@ -19,8 +19,10 @@ window rather than imputing either boundary.
 Identify a diary-defined sleep window
 }
 \examples{
+\dontshow{if (rlang::check_installed("actimetrics")) withAutoprint(\{ # examplesIf}
 data <- actimetrics::acti_count_data
 diary_window <- acti_sleep_diary(
   data, onset = data$time[5], wakeup = data$time[30]
 )
+\dontshow{\}) # examplesIf}
 }

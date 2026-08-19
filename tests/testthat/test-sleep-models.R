@@ -30,6 +30,7 @@ test_that("acti_sleep_sleeper supplies required input and harmonizes predictions
   model_dir <- tempfile()
   dir.create(model_dir)
   testthat::local_mocked_bindings(
+    sl_have_models = function(model_dir) TRUE,
     estimate_sleep = function(data, epoch, model_dir) {
       expect_named(data, c("timestamp", "x", "y", "z"))
       expect_type(data$timestamp, "double")
@@ -48,6 +49,20 @@ test_that("acti_sleep_sleeper supplies required input and harmonizes predictions
   expect_equal(out$nonwear, c(FALSE, FALSE, TRUE))
   expect_true(all(is.na(out$sleep_stage)))
   expect_equal(out$method, rep("sleeper", 3))
+})
+
+test_that("acti_sleep_sleeper requires a complete model directory", {
+  data <- data.frame(
+    time = as.POSIXct("2020-01-01", tz = "UTC") + 0:2,
+    X = c(0, 0.1, 0.2), Y = c(0, 0.1, 0.2), Z = c(1, 1, 1)
+  )
+  model_dir <- tempfile()
+  dir.create(model_dir)
+  testthat::local_mocked_bindings(
+    sl_have_models = function(model_dir) FALSE,
+    .package = "sleeper"
+  )
+  expect_error(acti_sleep_sleeper(data, model_dir = model_dir), "valid sleeper model")
 })
 
 test_that("model wrappers reject incomplete or unordered acceleration data", {

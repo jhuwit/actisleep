@@ -3,213 +3,143 @@
 
 <!-- badges: start -->
 
-[![R-CMD-check](https://github.com/jhuwit/actimetrics/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jhuwit/actimetrics/actions/workflows/R-CMD-check.yaml)
+[![R-CMD-check](https://github.com/jhuwit/actisleep/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jhuwit/actisleep/actions/workflows/R-CMD-check.yaml)
 [![Codecov test
-coverage](https://codecov.io/gh/jhuwit/actimetrics/branch/main/graph/badge.svg)](https://app.codecov.io/gh/jhuwit/actimetrics?branch=main)
+coverage](https://codecov.io/gh/jhuwit/actisleep/branch/main/graph/badge.svg)](https://app.codecov.io/gh/jhuwit/actisleep?branch=main)
 <!-- badges: end -->
 
-# actimetrics
+# actisleep
 
-`actimetrics` provides helpers for actigraphy preprocessing, summary
-statistics, count-based overlays, and MIMS-oriented processing.
+`actisleep` estimates sleep from wrist-worn accelerometry. It provides
+sleep-period-time (SPT) guiders, sustained-inactivity-bout (SIB) labels,
+consensus sleep labels, diary helpers, and wrappers for the `asleep` and
+`sleeper` machine-learning models.
 
-Core entry points:
-
-- `calculate_measures()` for summary metrics such as AI, MAD, MIMS, and
-  AC
-- `acti_calculate_counts()` and `acti_process()` for count and wear
-  overlays
-- `mims_default_processing()` for the default MIMS preprocessing chain
-- `acti_calibrate()` for calibration through `agcounts` using the van
-  Hees method commonly implemented in `GGIR`
+The guider functions identify a likely main sleep window. Combine one or
+more guiders with a SIB label when an epoch-level sleep/wake label is
+needed.
 
 ## Installation
 
-You can install `actimetrics` from GitHub with:
+Install the development version from GitHub:
 
 ``` r
 # install.packages("remotes")
-remotes::install_github("jhuwit/actimetrics")
+remotes::install_github("jhuwit/actisleep")
 ```
 
-## Quick Start
+## Sleep guiders and labels
+
+For epoch-level activity data, use an activity-based guider such as `L5`
+and then apply a SIB label. The result has one logical sleep label per
+epoch.
 
 ``` r
-library(actibase)
-library(actiread)
-library(actimetrics)
-path <- actiread::acti_example_gt3x()
-data <- actiread::acti_read_gt3x(path, verbose = FALSE)
-```
+library(actisleep)
 
-We can calculate minute-level Activity Counts using the `agcounts`
-package.
-
-``` r
-counts <- acti_calculate_counts(data)
-#> [1] "Creating Downsampled Data"
-#> [1] "Filtering Data"
-#> [1] "Trimming Data"
-#> [1] "Getting data back to 10Hz for accumulation"
-#> [1] "Summing epochs"
-counts
-#> # A tibble: 280 × 5
-#>    time                axis1 axis2 axis3 counts
-#>    <dttm>              <dbl> <dbl> <dbl>  <dbl>
-#>  1 2019-09-17 18:40:00     0     0     0      0
-#>  2 2019-09-17 18:41:00     0     0     0      0
-#>  3 2019-09-17 18:42:00     0     0     0      0
-#>  4 2019-09-17 18:43:00     0     0     0      0
-#>  5 2019-09-17 18:44:00     0     0     0      0
-#>  6 2019-09-17 18:45:00     0     0     0      0
-#>  7 2019-09-17 18:46:00     0     0     0      0
-#>  8 2019-09-17 18:47:00     0     0     0      0
-#>  9 2019-09-17 18:48:00     0     0     0      0
-#> 10 2019-09-17 18:49:00     0     0     0      0
-#> # ℹ 270 more rows
-get_transformations(counts)
-#> [1] "acti_calculate_counts:sample_rate_attribute_changed_to_1"
-#> [2] "acti_calculate_counts:counts_created_at_60s_epoch"       
-#> [3] "acti_read_gt3x:timezone_GMT_forced"                      
-#> [4] "acti_read_gt3x:timezone_Etc/GMT-4_applied"               
-#> [5] "acti_read_gt3x:attributes_set"                           
-#> [6] "acti_fill_zeros:filled_zeros"                            
-#> [7] "acti_read_gt3x:data_read"
-```
-
-From this, we can calculate wear flags for each minute according to the
-Choi or Troiano methods.
-
-``` r
-wear = acti_calculate_nonwear(counts)
-#> Joining with `by = join_by(timestamp)`
-get_transformations(wear)
-#>  [1] "acti_calculate_wear:choi_wear_algorithm_run_using_magnitude"
-#>  [2] "acti_calculate_counts:sample_rate_attribute_changed_to_1"   
-#>  [3] "acti_calculate_counts:counts_created_at_60s_epoch"          
-#>  [4] "acti_read_gt3x:timezone_GMT_forced"                         
-#>  [5] "acti_read_gt3x:timezone_Etc/GMT-4_applied"                  
-#>  [6] "acti_read_gt3x:attributes_set"                              
-#>  [7] "acti_fill_zeros:filled_zeros"                               
-#>  [8] "acti_read_gt3x:data_read"                                   
-#>  [9] "acti_calculate_counts:sample_rate_attribute_changed_to_1"   
-#> [10] "acti_calculate_counts:counts_created_at_60s_epoch"          
-#> [11] "acti_read_gt3x:timezone_GMT_forced"                         
-#> [12] "acti_read_gt3x:timezone_Etc/GMT-4_applied"                  
-#> [13] "acti_read_gt3x:attributes_set"                              
-#> [14] "acti_fill_zeros:filled_zeros"                               
-#> [15] "acti_read_gt3x:data_read"
-```
-
-We can then merge them so the counts have the wear flags:
-
-``` r
-result = dplyr::full_join(counts, wear, by = "time") %>%
-  dplyr::mutate(wear = ifelse(is.na(wear), FALSE, wear))
-get_transformations(result)
-#> [1] "acti_calculate_counts:sample_rate_attribute_changed_to_1"
-#> [2] "acti_calculate_counts:counts_created_at_60s_epoch"       
-#> [3] "acti_read_gt3x:timezone_GMT_forced"                      
-#> [4] "acti_read_gt3x:timezone_Etc/GMT-4_applied"               
-#> [5] "acti_read_gt3x:attributes_set"                           
-#> [6] "acti_fill_zeros:filled_zeros"                            
-#> [7] "acti_read_gt3x:data_read"
-```
-
-These functions are combined in `acti_process`, but the transformations
-are retained correctly:
-
-``` r
-processed = acti_process(data)
-#> [1] "Creating Downsampled Data"
-#> [1] "Filtering Data"
-#> [1] "Trimming Data"
-#> [1] "Getting data back to 10Hz for accumulation"
-#> [1] "Summing epochs"
-processed
-#> # A tibble: 40 × 6
-#>    time                axis1 axis2 axis3 counts wear 
-#>    <dttm>              <dbl> <dbl> <dbl>  <dbl> <lgl>
-#>  1 2019-09-17 22:40:00  5223  9743  8142  13729 TRUE 
-#>  2 2019-09-17 22:41:00  9298  9061  4099  13615 TRUE 
-#>  3 2019-09-17 22:42:00  4382  4371  3495   7108 TRUE 
-#>  4 2019-09-17 22:43:00  3265  3153  2540   5201 TRUE 
-#>  5 2019-09-17 22:44:00  1415   874   900   1891 TRUE 
-#>  6 2019-09-17 22:45:00     0     0     0      0 TRUE 
-#>  7 2019-09-17 22:46:00   115   218   140    283 TRUE 
-#>  8 2019-09-17 22:47:00     0     0     0      0 TRUE 
-#>  9 2019-09-17 22:48:00     0     0     0      0 TRUE 
-#> 10 2019-09-17 22:49:00     0     0     0      0 TRUE 
-#> # ℹ 30 more rows
-get_transformations(processed)
-#>  [1] "acti_process:counts_wear_merge"                          
-#>  [2] "acti_calculate_counts:sample_rate_attribute_changed_to_1"
-#>  [3] "acti_calculate_counts:counts_created_at_60s_epoch"       
-#>  [4] "acti_resample:sample_rate_attribute_changed_to_30"       
-#>  [5] "acti_resample:linear_resampled_to_30Hz"                  
-#>  [6] "acti_read_gt3x:timezone_GMT_forced"                      
-#>  [7] "acti_read_gt3x:timezone_Etc/GMT-4_applied"               
-#>  [8] "acti_read_gt3x:attributes_set"                           
-#>  [9] "acti_fill_zeros:filled_zeros"                            
-#> [10] "acti_read_gt3x:data_read"
-```
-
-``` r
-summary <- acti_calculate_measures(
-  data,
-  calculate_mims = FALSE,
-  calculate_ac = TRUE,
-  flag_data = FALSE
+time <- as.POSIXct("2020-01-01 18:00:00", tz = "UTC") + 0:1439 * 60
+epochs <- data.frame(
+  time = time,
+  activity = c(rep(20, 240), rep(0, 420), rep(20, 780)),
+  sib = c(rep(FALSE, 240), rep(TRUE, 420), rep(FALSE, 780))
 )
-#> Fixing Zeros with fix_zeros
-#> Calculating ai0
-#> Calculating MAD
-#> Joining AI and MAD
-#> Calculating AC
-#> [1] "Creating Downsampled Data"
-#> [1] "Filtering Data"
-#> [1] "Trimming Data"
-#> [1] "Getting data back to 10Hz for accumulation"
-#> [1] "Summing epochs"
-#> Joining AC
-processed <- mims_default_processing(data[1:6000, ])
-#> Warning in get_dynamic_range(data, dynamic_range): No dynamic range found in
-#> header, using data estimate
-#> Running extrapolation
-#> Running filtering
-#> Registered S3 methods overwritten by 'signal':
-#>   method         from   
-#>   print.freqs    gsignal
-#>   print.freqz    gsignal
-#>   print.grpdelay gsignal
-#>   plot.grpdelay  gsignal
-#>   print.impz     gsignal
-#>   print.specgram gsignal
-#>   plot.specgram  gsignal
+
+guider <- acti_sleep_l5(epochs)
+epochs$sleep <- acti_sleep_label(epochs$sib, guider)
+head(epochs)
+#>                  time activity   sib sleep
+#> 1 2020-01-01 18:00:00       20 FALSE FALSE
+#> 2 2020-01-01 18:01:00       20 FALSE FALSE
+#> 3 2020-01-01 18:02:00       20 FALSE FALSE
+#> 4 2020-01-01 18:03:00       20 FALSE FALSE
+#> 5 2020-01-01 18:04:00       20 FALSE FALSE
+#> 6 2020-01-01 18:05:00       20 FALSE FALSE
 ```
 
-Calibration uses the van Hees method as implemented by `agcounts`, which
-is the same approach typically exposed through `GGIR`.
+For raw X/Y/Z acceleration, `acti_sleep_sib()` calculates the van Hees
+SIB indicator and `acti_sleep_ensemble()` combines compatible guiders
+into a consensus label. The example recording supplied by `actiread` can
+be used directly:
 
 ``` r
-calibrated <- acti_calibrate(data)
-#> Filling Zeros
-#> Running agcounts::agcalibrate
-#> Loading chunk: 1
-#> 
-#>  There is not enough data to perform the GGIR calibration method. Returning data as read by read.gt3x.
-get_transformations(calibrated)
-#>  [1] "acti_calibrate:agcounts_calibrated"       
-#>  [2] "acti_fill_zeros:filled_zeros"             
-#>  [3] "acti_read_gt3x:timezone_GMT_forced"       
-#>  [4] "acti_read_gt3x:timezone_Etc/GMT-4_applied"
-#>  [5] "acti_read_gt3x:attributes_set"            
-#>  [6] "acti_fill_zeros:filled_zeros"             
-#>  [7] "acti_read_gt3x:data_read"                 
-#>  [8] "acti_fill_zeros:filled_zeros"             
-#>  [9] "acti_read_gt3x:timezone_GMT_forced"       
-#> [10] "acti_read_gt3x:timezone_Etc/GMT-4_applied"
-#> [11] "acti_read_gt3x:attributes_set"            
-#> [12] "acti_fill_zeros:filled_zeros"             
-#> [13] "acti_read_gt3x:data_read"
+library(actiread)
+
+raw <- actiread::acti_read_gt3x(
+  actiread::acti_example_gt3x(),
+  verbose = FALSE
+)
+result <- acti_sleep_ensemble(raw, epoch = "5 seconds")
+
+result$label_data
+```
+
+`result$labels` retains one label per guider, while `result$fused`
+contains the consensus probability and logical consensus label.
+
+## Diary windows
+
+When diary times are available, create a guider directly from onset and
+wake times. Times are inclusive at both endpoints.
+
+``` r
+diary_window <- acti_sleep_diary(
+  epochs,
+  onset = as.POSIXct("2020-01-01 22:00:00", tz = "UTC"),
+  wakeup = as.POSIXct("2020-01-02 06:00:00", tz = "UTC")
+)
+sum(diary_window$window)
+#> [1] 481
+```
+
+## Tudor–Locke sleep periods and metrics
+
+For labelled, one-minute epochs, `acti_sleep_tudor_locke()` delegates
+Tudor–Locke period detection and sleep metrics to `actigraph.sleepr`. It
+accepts the usual actisleep column names: `time`, an activity column,
+and a logical or sleep/wake `sleep` column.
+
+``` r
+sleep_diary <- data.frame(
+  night = 1:2,
+  onset = as.POSIXct(c("2020-01-03 22:30:00", "2020-01-04 22:45:00"), tz = "UTC"),
+  wakeup = as.POSIXct(c("2020-01-04 06:15:00", "2020-01-05 06:30:00"), tz = "UTC")
+)
+sleep_diary
+#>   night               onset              wakeup
+#> 1     1 2020-01-03 22:30:00 2020-01-04 06:15:00
+#> 2     2 2020-01-04 22:45:00 2020-01-05 06:30:00
+
+tudor_epochs <- acti_sleep_tudor_locke_diary(
+  data.frame(
+    time = as.POSIXct("2020-01-03 22:00:00", tz = "UTC") + 0:539 * 60,
+    activity = 0
+  ),
+  sleep_diary = sleep_diary
+)
+tudor_locke <- acti_sleep_tudor_locke(tudor_epochs)
+tudor_locke[c("onset", "out_bed_time", "total_sleep_time", "efficiency")]
+#> # A tibble: 1 × 4
+#>   onset               out_bed_time        total_sleep_time efficiency
+#>   <dttm>              <dttm>                         <int>      <dbl>
+#> 1 2020-01-03 22:30:00 2020-01-04 06:15:00              465        100
+```
+
+Run the diary helper separately for each person. A diary is one row per
+sleep interval, with POSIXct `onset` and `wakeup` columns; intervals can
+cross midnight and span multiple days.
+
+## Machine-learning model wrappers
+
+`acti_sleep_asleep()` and `acti_sleep_sleeper()` both require complete,
+strictly time-ordered raw triaxial data. They return the same columns:
+`time`, `sleep`, `sleep_probability`, `sleep_stage`, `nonwear`, and
+`method`.
+
+The models and their Python requirements are managed by the upstream
+packages. For `sleeper`, download the model files first and provide
+their directory as `model_dir`.
+
+``` r
+asleep_estimate <- acti_sleep_asleep(raw, verbose = FALSE)
+sleeper_estimate <- acti_sleep_sleeper(raw, model_dir = "path/to/sleeper-models")
 ```

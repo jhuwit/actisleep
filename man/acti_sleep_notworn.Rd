@@ -17,9 +17,11 @@ acti_sleep_notworn(data, min_block_minutes = 30, max_gap_minutes = 60)
 Identify a low-activity window for no-night-wear protocols
 }
 \examples{
+\dontshow{if (rlang::check_installed("actimetrics")) withAutoprint(\{ # examplesIf}
 data <- actimetrics::acti_count_data
 data <- data[rep(seq_len(nrow(data)), length.out = 24 * 60), ]
 data$time <- data$time[1] + (seq_len(nrow(data)) - 1) * 60
 # `counts` is an epoch-level activity metric.
 no_night_wear <- acti_sleep_notworn(data)
+\dontshow{\}) # examplesIf}
 }

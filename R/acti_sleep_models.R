@@ -10,7 +10,7 @@
                  "that actibase can standardize to `time`, `X`, `Y`, and `Z`.")
   )
 
-  out <- dplyr::transmute(
+  data <- dplyr::transmute(
     data,
     time = .data$time,
     X = as.numeric(.data$X),
@@ -18,19 +18,20 @@
     Z = as.numeric(.data$Z)
   )
   assertthat::assert_that(
-    nrow(out) >= 2L,
-    inherits(out$time, "POSIXt"),
-    all(is.finite(as.numeric(out$time))),
-    all(is.finite(out$X) & is.finite(out$Y) & is.finite(out$Z)),
-    all(diff(as.numeric(out$time)) > 0),
+    nrow(data) >= 2L,
+    inherits(data$time, "POSIXt"),
+    all(is.finite(as.numeric(data$time))),
+    all(is.finite(data$X) & is.finite(data$Y) & is.finite(data$Z)),
+    all(diff(as.numeric(data$time)) > 0),
     msg = paste0("`data` must have at least two complete, uniquely timestamped ",
                  "observations in increasing time order.")
   )
-  out
+  data
 }
 
 .acti_sleep_model_time <- function(x) {
-  if (inherits(x, "POSIXt")) return(as.POSIXct(x, tz = "UTC"))
+  if (inherits(x, "POSIXct")) return(x)
+  if (!inherits(x, "POSIXt")) return(as.POSIXct(x, tz = "UTC"))
   if (is.numeric(x)) return(as.POSIXct(x, origin = "1970-01-01", tz = "UTC"))
   lubridate::ymd_hms(as.character(x), tz = "UTC", quiet = TRUE)
 }
@@ -134,6 +135,11 @@ acti_sleep_sleeper <- function(data, epoch = 30L, model_dir) {
     assertthat::is.count(epoch), epoch > 0,
     assertthat::is.string(model_dir), dir.exists(path.expand(model_dir)),
     msg = "`epoch` must be one positive integer and `model_dir` must exist."
+  )
+  assertthat::assert_that(
+    sleeper::sl_have_models(model_dir),
+    msg = paste0("`model_dir` does not contain valid sleeper model files. ",
+                 "Download them with `sleeper::sl_download_models()`. ")
   )
   sleeper_data <- data.frame(
     timestamp = as.numeric(data$time), x = data$X, y = data$Y, z = data$Z
