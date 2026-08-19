@@ -1,0 +1,47 @@
+Type: Package
+Package: actisleep
+Title: Create Sleep Measures of Actigraphy and Activity Analysis
+Version: 0.1.0
+Authors@R: c(
+    person(given = "John",
+           family = "Muschelli",
+           role = c("aut", "cre"),
+           email = "muschellij2@gmail.com")
+    )
+Description: Provides functions for estimating sleep from 
+    actigraphy and activity data into specific metrics.
+Roxygen: list(markdown = TRUE)
+License: GPL-3
+Depends: 
+    R (>= 3.5)
+Suggests:
+    testthat,
+    utils,
+    covr,
+    knitr,
+    httr,
+    rmarkdown,
+    data.table,
+    reticulate,
+    callr,
+    GGIR,
+    rlang,
+    actimetrics
+Encoding: UTF-8
+VignetteBuilder: knitr
+Imports: 
+    actibase,
+    actiread,
+    dplyr,
+    lubridate,
+    assertthat,
+    tibble,
+    stats,
+    asleep,
+    sleeper
+LazyData: true
+Config/roxygen2/version: 8.0.0
+Remotes:
+  jhuwit/stepcount
+URL: https://jhuwit.github.io/actimetrics/
+BugReports: https://github.com/jhuwit/actimetrics/issues

@@ -1,0 +1,50 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/jhuwit/actisleep/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/jhuwit/actisleep/actions/workflows/R-CMD-check.yaml)
+[![Codecov test coverage](https://codecov.io/gh/jhuwit/actisleep/branch/main/graph/badge.svg)](https://app.codecov.io/gh/jhuwit/actisleep?branch=main)
+<!-- badges: end -->
+    
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.path = "man/figures/README-",
+  cache = TRUE
+)
+```
+
+# actisleep
+
+`actisleep` provides helpers for sleep estimation from actigraphy.
+
+Core entry points:
+
+- `calculate_measures()` for summary metrics such as AI, MAD, MIMS, and AC
+- `acti_calculate_counts()` and `acti_process()` for count and wear overlays
+- `mims_default_processing()` for the default MIMS preprocessing chain
+- `acti_calibrate()` for calibration through `agcounts` using the van Hees
+  method commonly implemented in `GGIR`
+
+## Installation
+
+You can install `actisleep` from GitHub with:
+
+```{r gh-installation, eval = FALSE}
+# install.packages("remotes")
+remotes::install_github("jhuwit/actisleep")
+```
+
+## Quick Start
+
+```{r example}
+library(actibase)
+library(actiread)
+library(actisleep)
+path <- actiread::acti_example_gt3x()
+data <- actiread::acti_read_gt3x(path, verbose = FALSE)
+```
+
